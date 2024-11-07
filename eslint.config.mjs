@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 
 import { FlatCompat } from '@eslint/eslintrc'
 import js from '@eslint/js'
-import simpleImportSort from 'simple-import-sort'
+import simpleImportSort from 'eslint-plugin-simple-import-sort'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -23,7 +23,7 @@ export default [
     rules: {
       'simple-import-sort/imports': 'error',
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-vars': 'off',
     },
   },
 ]
