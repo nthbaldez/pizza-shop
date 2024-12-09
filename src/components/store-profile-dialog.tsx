@@ -1,10 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { getManagerRestaurant } from '@/api/get-manager-restaurant'
+import {
+  getManagerRestaurant,
+  GetManagerRestaurantResponse,
+} from '@/api/get-manager-restaurant'
 import { updateProfile } from '@/api/update-profile'
 
 // import { Spinner } from './spinner'
@@ -23,15 +26,18 @@ import { Textarea } from './ui/textarea'
 
 const storeProfileSchema = z.object({
   name: z.string().min(1),
-  description: z.string(),
+  description: z.string().nullable(),
 })
 
 type StoreProfileSchemaType = z.infer<typeof storeProfileSchema>
 
 export function StoreProfileDialog() {
+  const queryClient = useQueryClient()
+
   const { data: managerRestaurant } = useQuery({
     queryKey: ['manager-restaurant'],
     queryFn: getManagerRestaurant,
+    staleTime: Infinity,
   })
 
   const {
@@ -46,8 +52,40 @@ export function StoreProfileDialog() {
     },
   })
 
+  function updateManagerRestaurantCache({
+    name,
+    description,
+  }: StoreProfileSchemaType) {
+    const cached = queryClient.getQueryData<GetManagerRestaurantResponse>([
+      'manager-restaurant',
+    ])
+
+    if (cached) {
+      queryClient.setQueryData(['manager-restaurant'], {
+        ...cached,
+        name,
+        description,
+      })
+    }
+
+    return { cached }
+  }
+
   const { mutateAsync: updateProfileFn } = useMutation({
     mutationFn: updateProfile,
+    onMutate({ name, description }) {
+      const { cached } = updateManagerRestaurantCache({
+        name,
+        description,
+      })
+
+      return { previousProfileData: cached }
+    },
+    onError(error, variables, context) {
+      if (error && context?.previousProfileData) {
+        updateManagerRestaurantCache(context?.previousProfileData)
+      }
+    },
   })
 
   async function handleUpdateProfile(data: StoreProfileSchemaType) {
@@ -91,7 +129,7 @@ export function StoreProfileDialog() {
           </div>
         </div>
         <DialogFooter>
-          <DialogClose>
+          <DialogClose asChild>
             <Button type="button" variant="ghost">
               Cancelar
             </Button>
