@@ -81,7 +81,7 @@ export function StoreProfileDialog() {
 
       return { previousProfileData: cached }
     },
-    onError(error, variables, context) {
+    onError(error, __, context) {
       if (error && context?.previousProfileData) {
         updateManagerRestaurantCache(context?.previousProfileData)
       }
