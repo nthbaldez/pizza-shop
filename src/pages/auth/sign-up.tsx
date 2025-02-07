@@ -34,8 +34,6 @@ export default function SignUp() {
 
   async function handleSignUp(data: SignUpForm) {
     try {
-      console.log(data)
-
       await registerRestaurantFn({
         restaurantName: data.restaurantName,
         managerName: data.managerName,
@@ -53,7 +51,7 @@ export default function SignUp() {
       })
     } catch (error) {
       console.error(error)
-      toast.error('Credenciais inválidas!')
+      toast.error('Erro ao cadastrar restaurante!')
     }
   }
 
